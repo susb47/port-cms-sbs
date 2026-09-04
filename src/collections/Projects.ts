@@ -8,10 +8,7 @@ export const Projects: CollectionConfig = {
   },
   access: {
     read: ({ req: { user } }) => {
-      // Logged in users can see everything
       if (user) return true
-
-      // Public can only see published projects
       return {
         status: {
           equals: 'published',
@@ -32,6 +29,19 @@ export const Projects: CollectionConfig = {
       unique: true,
       admin: {
         position: 'sidebar',
+      },
+      hooks: {
+        beforeValidate: [
+          ({ value, data }) => {
+            if (!value && data?.title) {
+              return data.title
+                .toLowerCase()
+                .replace(/ /g, '-')
+                .replace(/[^\w-]+/g, '')
+            }
+            return value
+          },
+        ],
       },
     },
     {
@@ -71,6 +81,10 @@ export const Projects: CollectionConfig = {
     {
       name: 'gallery',
       type: 'array',
+      labels: {
+        singular: 'Image',
+        plural: 'Gallery',
+      },
       fields: [
         {
           name: 'image',
@@ -82,21 +96,26 @@ export const Projects: CollectionConfig = {
     },
     {
       name: 'techStack',
-      type: 'array',
-      fields: [
-        {
-          name: 'technology',
-          type: 'text',
-        },
-      ],
+      type: 'relationship',
+      relationTo: 'skills',
+      hasMany: true,
+      admin: {
+        description: 'Select skills used in this project',
+      },
     },
     {
       name: 'liveUrl',
       type: 'text',
+      admin: {
+        description: 'Live project URL',
+      },
     },
     {
       name: 'githubUrl',
       type: 'text',
+      admin: {
+        description: 'GitHub repository URL',
+      },
     },
     {
       name: 'order',

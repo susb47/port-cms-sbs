@@ -9,6 +9,14 @@ import { Users } from './collections/Users'
 import { Media } from './collections/Media'
 import { Projects } from './collections/Projects'
 import { SiteSettings } from './globals/SiteSettings'
+import { About } from './globals/About'
+import { Skills } from './collections/Skills'
+import { Theme } from './globals/Theme'
+import { HeroProfile } from '@/blocks/HeroProfile'
+import { themeToCssVars } from '@/lib/theme-to-css-vars'
+import { fontClassNames } from '@/lib/fonts'
+
+
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -19,8 +27,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Projects],   // ← Projects added here
-  globals: [SiteSettings],
+  collections: [Users, Media, Projects, Skills],   // ← Projects added here
+  globals: [SiteSettings, About, Theme],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {

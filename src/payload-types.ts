@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     media: Media;
     projects: Project;
+    skills: Skill;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -80,6 +81,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
+    skills: SkillsSelect<false> | SkillsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -91,9 +93,13 @@ export interface Config {
   fallbackLocale: null;
   globals: {
     'site-settings': SiteSetting;
+    about: About;
+    theme: Theme;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    about: AboutSelect<false> | AboutSelect<true>;
+    theme: ThemeSelect<false> | ThemeSelect<true>;
   };
   locale: null;
   widgets: {
@@ -200,14 +206,34 @@ export interface Project {
         id?: string | null;
       }[]
     | null;
-  techStack?:
-    | {
-        technology?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  /**
+   * Select skills used in this project
+   */
+  techStack?: (string | Skill)[] | null;
+  /**
+   * Live project URL
+   */
   liveUrl?: string | null;
+  /**
+   * GitHub repository URL
+   */
   githubUrl?: string | null;
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: string;
+  name: string;
+  category?: ('frontend' | 'backend' | 'database' | 'devops' | 'design' | 'other') | null;
+  /**
+   * Optional icon for this skill
+   */
+  icon?: (string | null) | Media;
   order?: number | null;
   updatedAt: string;
   createdAt: string;
@@ -247,6 +273,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'projects';
         value: string | Project;
+      } | null)
+    | ({
+        relationTo: 'skills';
+        value: string | Skill;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -348,14 +378,21 @@ export interface ProjectsSelect<T extends boolean = true> {
         image?: T;
         id?: T;
       };
-  techStack?:
-    | T
-    | {
-        technology?: T;
-        id?: T;
-      };
+  techStack?: T;
   liveUrl?: T;
   githubUrl?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills_select".
+ */
+export interface SkillsSelect<T extends boolean = true> {
+  name?: T;
+  category?: T;
+  icon?: T;
   order?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -421,6 +458,83 @@ export interface SiteSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about".
+ */
+export interface About {
+  id: string;
+  name: string;
+  /**
+   * e.g. Full Stack Developer
+   */
+  role?: string | null;
+  bio?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  profileImage?: (string | null) | Media;
+  email?: string | null;
+  location?: string | null;
+  /**
+   * Upload your CV / Resume (PDF)
+   */
+  resume?: (string | null) | Media;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme".
+ */
+export interface Theme {
+  id: string;
+  /**
+   * Fonts end users are allowed to pick from elsewhere in the admin.
+   */
+  availableFonts?:
+    ('cambria' | 'georgia' | 'playfair-display' | 'merriweather' | 'inter' | 'poppins' | 'space-grotesk')[] | null;
+  bodyFont?:
+    ('cambria' | 'georgia' | 'playfair-display' | 'merriweather' | 'inter' | 'poppins' | 'space-grotesk') | null;
+  headingFont?:
+    ('cambria' | 'georgia' | 'playfair-display' | 'merriweather' | 'inter' | 'poppins' | 'space-grotesk') | null;
+  primary?: string | null;
+  secondary?: string | null;
+  accent?: string | null;
+  background?: string | null;
+  text?: string | null;
+  headingStyles?:
+    | {
+        /**
+         * Shown in dropdowns, e.g. "H1 / Display"
+         */
+        name: string;
+        /**
+         * Referenced by blocks, e.g. "h1-display" — keep in sync with block headingStyle option values.
+         */
+        slug: string;
+        fontSize: string;
+        fontWeight?: ('400' | '500' | '600' | '700' | '800') | null;
+        letterSpacing?: string | null;
+        textTransform?: ('none' | 'uppercase' | 'capitalize') | null;
+        colorRole?: ('primary' | 'secondary' | 'accent' | 'text') | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
@@ -432,6 +546,51 @@ export interface SiteSettingsSelect<T extends boolean = true> {
     | {
         platform?: T;
         url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "about_select".
+ */
+export interface AboutSelect<T extends boolean = true> {
+  name?: T;
+  role?: T;
+  bio?: T;
+  profileImage?: T;
+  email?: T;
+  location?: T;
+  resume?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "theme_select".
+ */
+export interface ThemeSelect<T extends boolean = true> {
+  availableFonts?: T;
+  bodyFont?: T;
+  headingFont?: T;
+  primary?: T;
+  secondary?: T;
+  accent?: T;
+  background?: T;
+  text?: T;
+  headingStyles?:
+    | T
+    | {
+        name?: T;
+        slug?: T;
+        fontSize?: T;
+        fontWeight?: T;
+        letterSpacing?: T;
+        textTransform?: T;
+        colorRole?: T;
         id?: T;
       };
   updatedAt?: T;
