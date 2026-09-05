@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     projects: Project;
     skills: Skill;
+    pages: Page;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     projects: ProjectsSelect<false> | ProjectsSelect<true>;
     skills: SkillsSelect<false> | SkillsSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -95,11 +97,13 @@ export interface Config {
     'site-settings': SiteSetting;
     about: About;
     theme: Theme;
+    header: Header;
   };
   globalsSelect: {
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     about: AboutSelect<false> | AboutSelect<true>;
     theme: ThemeSelect<false> | ThemeSelect<true>;
+    header: HeaderSelect<false> | HeaderSelect<true>;
   };
   locale: null;
   widgets: {
@@ -240,6 +244,80 @@ export interface Skill {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: string;
+  title: string;
+  slug?: string | null;
+  status?: ('draft' | 'published') | null;
+  /**
+   * Sections on this page — this is the array the canvas builder reads and writes.
+   */
+  layout?:
+    | {
+        content: {
+          heading: string;
+          headingStyle?: ('h1-display' | 'h2-section' | 'h3-subsection') | null;
+          introduction: string;
+          sections?:
+            | {
+                heading: string;
+                headingStyle?: ('h1-display' | 'h2-section' | 'h3-subsection') | null;
+                items?:
+                  | {
+                      label: string;
+                      url?: string | null;
+                      id?: string | null;
+                    }[]
+                  | null;
+                id?: string | null;
+              }[]
+            | null;
+        };
+        media?: {
+          image?: (string | null) | Media;
+        };
+        actions?: {
+          primary?: {
+            label?: string | null;
+            link?: string | null;
+          };
+          secondary?: {
+            label?: string | null;
+            link?: string | null;
+          };
+        };
+        style?: {
+          layout?: ('split' | 'stacked') | null;
+          imagePosition?: ('left' | 'right') | null;
+          container?: ('bordered' | 'plain') | null;
+          bodyFont?:
+            | (
+                | 'inherit'
+                | 'cambria'
+                | 'georgia'
+                | 'playfair-display'
+                | 'merriweather'
+                | 'inter'
+                | 'poppins'
+                | 'space-grotesk'
+                | 'mono'
+              )
+            | null;
+          headingStyle?: ('h1-display' | 'h2-section' | 'h3-subsection') | null;
+        };
+        id?: string | null;
+        blockName?: string | null;
+        blockType: 'heroProfile';
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -277,6 +355,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'skills';
         value: string | Skill;
+      } | null)
+    | ({
+        relationTo: 'pages';
+        value: string | Page;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -396,6 +478,79 @@ export interface SkillsSelect<T extends boolean = true> {
   order?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages_select".
+ */
+export interface PagesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  status?: T;
+  layout?:
+    | T
+    | {
+        heroProfile?:
+          | T
+          | {
+              content?:
+                | T
+                | {
+                    heading?: T;
+                    headingStyle?: T;
+                    introduction?: T;
+                    sections?:
+                      | T
+                      | {
+                          heading?: T;
+                          headingStyle?: T;
+                          items?:
+                            | T
+                            | {
+                                label?: T;
+                                url?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                        };
+                  };
+              media?:
+                | T
+                | {
+                    image?: T;
+                  };
+              actions?:
+                | T
+                | {
+                    primary?:
+                      | T
+                      | {
+                          label?: T;
+                          link?: T;
+                        };
+                    secondary?:
+                      | T
+                      | {
+                          label?: T;
+                          link?: T;
+                        };
+                  };
+              style?:
+                | T
+                | {
+                    layout?: T;
+                    imagePosition?: T;
+                    container?: T;
+                    bodyFont?: T;
+                    headingStyle?: T;
+                  };
+              id?: T;
+              blockName?: T;
+            };
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -535,6 +690,31 @@ export interface Theme {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header".
+ */
+export interface Header {
+  id: string;
+  /**
+   * Text logo (e.g. site name). Used if no logo image is set below.
+   */
+  logoText?: string | null;
+  logoImage?: (string | null) | Media;
+  navLinks?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  cta?: {
+    label?: string | null;
+    link?: string | null;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-settings_select".
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
@@ -592,6 +772,30 @@ export interface ThemeSelect<T extends boolean = true> {
         textTransform?: T;
         colorRole?: T;
         id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header_select".
+ */
+export interface HeaderSelect<T extends boolean = true> {
+  logoText?: T;
+  logoImage?: T;
+  navLinks?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  cta?:
+    | T
+    | {
+        label?: T;
+        link?: T;
       };
   updatedAt?: T;
   createdAt?: T;

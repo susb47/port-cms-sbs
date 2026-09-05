@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { type ElementType } from 'react'
 import styles from './HeroProfileBlock.module.css'
 
 // Maps a named heading style to the semantic tag it should render as.
 // Keep this list in sync with the headingStyleOptions in HeroProfile.ts.
-const headingTag: Record<string, keyof JSX.IntrinsicElements> = {
+const headingTag: Record<string, ElementType> = {
   'h1-display': 'h1',
   'h2-section': 'h2',
   'h3-subsection': 'h3',

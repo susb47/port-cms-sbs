@@ -15,7 +15,8 @@ import { Theme } from './globals/Theme'
 import { HeroProfile } from '@/blocks/HeroProfile'
 import { themeToCssVars } from '@/lib/theme-to-css-vars'
 import { fontClassNames } from '@/lib/fonts'
-
+import { Header } from './globals/Header'
+import { Pages } from './collections/Pages'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -27,8 +28,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media, Projects, Skills],   // ← Projects added here
-  globals: [SiteSettings, About, Theme],
+  collections: [Users, Media, Projects, Skills, Pages],   // ← Projects added here
+  globals: [SiteSettings, About, Theme, Header],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
