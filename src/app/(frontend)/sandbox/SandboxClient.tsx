@@ -64,6 +64,7 @@ type CanvasBlock = {
 
 type Template = {
   type: 'heroProfile'
+  slug: string
   label: string
   description: string
   icon: string
@@ -73,6 +74,7 @@ type Template = {
 const TEMPLATES: Template[] = [
   {
     type: 'heroProfile',
+    slug: 'hero-profile',
     label: 'Hero Profile',
     description: 'Split layout with heading, intro, and CTAs',
     icon: '👤',
@@ -102,6 +104,7 @@ const TEMPLATES: Template[] = [
   },
   {
     type: 'heroProfile',
+    slug: 'hero-profile-stacked',
     label: 'Hero Profile (Stacked)',
     description: 'Centered stacked hero with single CTA',
     icon: '📝',
@@ -127,6 +130,7 @@ const TEMPLATES: Template[] = [
   },
   {
     type: 'heroProfile',
+    slug: 'hero-profile-minimal',
     label: 'Hero Profile (Minimal)',
     description: 'Clean bordered hero with mono font',
     icon: '✨',
@@ -441,6 +445,14 @@ export default function SandboxClient() {
   const [pageTitle, setPageTitle] = useState('My Sandbox Page')
   const [publishing, setPublishing] = useState(false)
   const [publishedUrl, setPublishedUrl] = useState<string | null>(null)
+  const [darkMode, setDarkMode] = useState(false)
+  const [colors, setColors] = useState({
+    primary: '#0f172a',
+    secondary: '#64748b',
+    accent: '#f97316',
+    background: '#ffffff',
+    text: '#0f172a',
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -466,8 +478,8 @@ export default function SandboxClient() {
     const overIdStr = over.id as string
 
     if (activeIdStr.startsWith('template-')) {
-      const templateType = activeIdStr.replace('template-', '')
-      const template = TEMPLATES.find((t) => t.type === templateType)
+      const templateSlug = activeIdStr.replace('template-', '')
+      const template = TEMPLATES.find((t) => t.slug === templateSlug)
       if (!template) return
 
       const newBlock: CanvasBlock = {
@@ -532,11 +544,32 @@ export default function SandboxClient() {
   }
 
   const activeTemplate = activeId
-    ? TEMPLATES.find((t) => `template-${t.type}` === activeId)
+    ? TEMPLATES.find((t) => `template-${t.slug}` === activeId)
     : null
 
   return (
-    <div style={styles.container}>
+    <div
+      style={{
+        ...styles.container,
+        '--sandbox-primary': colors.primary,
+        '--sandbox-secondary': colors.secondary,
+        '--sandbox-accent': colors.accent,
+        '--sandbox-background': colors.background,
+        '--sandbox-text': colors.text,
+        '--sandbox-panel-bg': darkMode ? '#0f172a' : '#ffffff',
+        '--sandbox-panel-left': darkMode ? '#020617' : '#f8fafc',
+        '--sandbox-border': darkMode ? '#1e293b' : '#e2e8f0',
+        '--sandbox-muted': darkMode ? '#94a3b8' : '#64748b',
+        '--sandbox-input-bg': darkMode ? '#1e293b' : '#ffffff',
+        '--sandbox-hover-accent': darkMode ? '#fb923c' : '#fb923c',
+        ...(darkMode
+          ? {
+              background: '#020617',
+              color: '#e2e8f0',
+            }
+          : {}),
+      } as React.CSSProperties}
+    >
       {/* Header */}
       <div style={styles.header}>
         <div style={styles.headerLeft}>
@@ -550,6 +583,28 @@ export default function SandboxClient() {
             onChange={(e) => setPageTitle(e.target.value)}
             placeholder="Page title"
           />
+          <label style={styles.toggleLabel}>
+            <input
+              type="checkbox"
+              checked={darkMode}
+              onChange={(e) => setDarkMode(e.target.checked)}
+              style={styles.toggleInput}
+            />
+            <span
+              style={{
+                ...styles.toggleTrack,
+                background: darkMode ? 'var(--sandbox-accent, #f97316)' : '#cbd5e1',
+              }}
+            >
+              <span
+                style={{
+                  ...styles.toggleThumb,
+                  transform: darkMode ? 'translateX(16px)' : 'translateX(0)',
+                }}
+              />
+            </span>
+            <span style={styles.toggleText}>Dark</span>
+          </label>
           <button
             style={{ ...styles.publishButton, opacity: publishing ? 0.7 : 1 }}
             onClick={handlePublish}
@@ -575,19 +630,29 @@ export default function SandboxClient() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div style={styles.body}>
+        <div
+          style={{
+            ...styles.body,
+            '--sandbox-canvas-bg': darkMode ? '#0f172a' : '#f1f5f9',
+            '--sandbox-block-drag-bg': darkMode ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.9)',
+            '--sandbox-block-delete-bg': darkMode ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.9)',
+            '--sandbox-delete-bg': darkMode ? '#450a0a' : '#fef2f2',
+            '--sandbox-delete-color': '#fca5a5',
+            '--sandbox-delete-border': darkMode ? '#7f1d1d' : '#fecaca',
+          } as React.CSSProperties}
+        >
           {/* Left Panel - Templates */}
           <div style={styles.leftPanel}>
             <div style={styles.panelHeader}>Templates</div>
             <SortableContext
-              items={TEMPLATES.map((t) => `template-${t.type}`)}
+              items={TEMPLATES.map((t) => `template-${t.slug}`)}
               strategy={verticalListSortingStrategy}
             >
               <div style={styles.templateList}>
                 {TEMPLATES.map((template) => (
                   <DraggableTemplate
-                    key={template.type}
-                    id={`template-${template.type}`}
+                    key={template.slug}
+                    id={`template-${template.slug}`}
                     template={template}
                   />
                 ))}
@@ -640,8 +705,56 @@ export default function SandboxClient() {
           {/* Right Panel - Customization */}
           <div style={styles.rightPanel}>
             <div style={styles.panelHeader}>Customize</div>
+            <div style={styles.properties}>
+              <div style={styles.propertyGroup}>
+                <label style={styles.propertyLabel}>Primary</label>
+                <input
+                  type="color"
+                  style={styles.colorInput}
+                  value={colors.primary}
+                  onChange={(e) => setColors({ ...colors, primary: e.target.value })}
+                />
+              </div>
+              <div style={styles.propertyGroup}>
+                <label style={styles.propertyLabel}>Secondary</label>
+                <input
+                  type="color"
+                  style={styles.colorInput}
+                  value={colors.secondary}
+                  onChange={(e) => setColors({ ...colors, secondary: e.target.value })}
+                />
+              </div>
+              <div style={styles.propertyGroup}>
+                <label style={styles.propertyLabel}>Accent</label>
+                <input
+                  type="color"
+                  style={styles.colorInput}
+                  value={colors.accent}
+                  onChange={(e) => setColors({ ...colors, accent: e.target.value })}
+                />
+              </div>
+              <div style={styles.propertyGroup}>
+                <label style={styles.propertyLabel}>Background</label>
+                <input
+                  type="color"
+                  style={styles.colorInput}
+                  value={colors.background}
+                  onChange={(e) => setColors({ ...colors, background: e.target.value })}
+                />
+              </div>
+              <div style={styles.propertyGroup}>
+                <label style={styles.propertyLabel}>Text</label>
+                <input
+                  type="color"
+                  style={styles.colorInput}
+                  value={colors.text}
+                  onChange={(e) => setColors({ ...colors, text: e.target.value })}
+                />
+              </div>
+            </div>
+
             {selectedBlock ? (
-              <div style={styles.properties}>
+              <div style={{ ...styles.properties, borderTop: '1px solid var(--sandbox-border, #e2e8f0)', paddingTop: 16 }}>
                 <PropertyEditor
                   block={selectedBlock}
                   onChange={(updater) => updateBlock(selectedBlock.id, updater)}
@@ -666,15 +779,15 @@ const styles: Record<string, React.CSSProperties> = {
     flexDirection: 'column',
     height: '100vh',
     fontFamily: 'var(--font-body, inherit)',
-    color: 'var(--color-text, #0f172a)',
+    color: 'var(--sandbox-text, #0f172a)',
   },
   header: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '12px 24px',
-    borderBottom: '1px solid #e2e8f0',
-    background: '#ffffff',
+    borderBottom: '1px solid var(--sandbox-border, #e2e8f0)',
+    background: 'var(--sandbox-panel-bg, #ffffff)',
     flexShrink: 0,
   },
   headerLeft: {
@@ -684,7 +797,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   logo: {
     fontSize: 20,
-    color: 'var(--color-accent, #f97316)',
+    color: 'var(--sandbox-accent, #f97316)',
   },
   headerTitle: {
     fontWeight: 600,
@@ -697,15 +810,51 @@ const styles: Record<string, React.CSSProperties> = {
   },
   titleInput: {
     padding: '6px 12px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid var(--sandbox-border, #cbd5e1)',
     borderRadius: 6,
     fontSize: 14,
     outline: 'none',
     minWidth: 200,
+    background: 'var(--sandbox-input-bg, #fff)',
+    color: 'var(--sandbox-text, #0f172a)',
+  },
+  toggleLabel: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 8,
+    cursor: 'pointer',
+    userSelect: 'none' as const,
+  },
+  toggleInput: {
+    display: 'none',
+  },
+  toggleTrack: {
+    position: 'relative' as const,
+    width: 36,
+    height: 20,
+    borderRadius: 999,
+    background: '#cbd5e1',
+    transition: 'background 0.2s',
+  },
+  toggleThumb: {
+    position: 'absolute' as const,
+    top: 2,
+    left: 2,
+    width: 16,
+    height: 16,
+    borderRadius: '50%',
+    background: '#fff',
+    boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+    transition: 'transform 0.2s',
+  },
+  toggleText: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: 'var(--sandbox-muted, #64748b)',
   },
   publishButton: {
     padding: '8px 20px',
-    background: 'var(--color-accent, #f97316)',
+    background: 'var(--sandbox-accent, #f97316)',
     color: '#fff',
     border: 'none',
     borderRadius: 6,
@@ -715,15 +864,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   toast: {
     padding: '10px 24px',
-    background: '#f0fdf4',
-    color: '#166534',
-    borderBottom: '1px solid #bbf7d0',
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: 'center' as const,
     flexShrink: 0,
   },
   toastLink: {
-    color: '#15803d',
     textDecoration: 'underline',
     fontWeight: 600,
   },
@@ -734,8 +879,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   leftPanel: {
     width: 260,
-    borderRight: '1px solid #e2e8f0',
-    background: '#f8fafc',
+    borderRight: '1px solid var(--sandbox-border, #e2e8f0)',
+    background: 'var(--sandbox-panel-left, #f8fafc)',
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
@@ -746,8 +891,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
-    color: '#64748b',
-    borderBottom: '1px solid #e2e8f0',
+    color: 'var(--sandbox-muted, #64748b)',
+    borderBottom: '1px solid var(--sandbox-border, #e2e8f0)',
   },
   templateList: {
     padding: 12,
@@ -761,8 +906,8 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     gap: 10,
     padding: 12,
-    background: '#fff',
-    border: '1px solid #e2e8f0',
+    background: 'var(--sandbox-panel-bg, #fff)',
+    border: '1px solid var(--sandbox-border, #e2e8f0)',
     borderRadius: 8,
     cursor: 'grab',
     userSelect: 'none' as const,
@@ -775,17 +920,18 @@ const styles: Record<string, React.CSSProperties> = {
   templateLabel: {
     fontWeight: 600,
     fontSize: 13,
+    color: 'var(--sandbox-text, #0f172a)',
   },
   templateDescription: {
     fontSize: 11,
-    color: '#64748b',
+    color: 'var(--sandbox-muted, #64748b)',
     marginTop: 2,
   },
   canvas: {
     flex: 1,
     overflowY: 'auto' as const,
     padding: 24,
-    background: '#f1f5f9',
+    background: 'var(--sandbox-canvas-bg, #f1f5f9)',
   },
   emptyCanvas: {
     display: 'flex',
@@ -793,7 +939,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: 80,
-    color: '#94a3b8',
+    color: 'var(--sandbox-muted, #94a3b8)',
     textAlign: 'center' as const,
   },
   emptyCanvasIcon: {
@@ -817,12 +963,12 @@ const styles: Record<string, React.CSSProperties> = {
     top: 8,
     left: 8,
     padding: '4px 8px',
-    background: 'rgba(255,255,255,0.9)',
-    border: '1px solid #e2e8f0',
+    background: 'var(--sandbox-block-drag-bg, rgba(255,255,255,0.9))',
+    border: '1px solid var(--sandbox-border, #e2e8f0)',
     borderRadius: 4,
     cursor: 'grab',
     fontSize: 12,
-    color: '#64748b',
+    color: 'var(--sandbox-muted, #64748b)',
     zIndex: 10,
     userSelect: 'none' as const,
   },
@@ -838,8 +984,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'rgba(255,255,255,0.9)',
-    border: '1px solid #e2e8f0',
+    background: 'var(--sandbox-block-delete-bg, rgba(255,255,255,0.9))',
+    border: '1px solid var(--sandbox-border, #e2e8f0)',
     borderRadius: '50%',
     cursor: 'pointer',
     fontSize: 16,
@@ -848,8 +994,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   rightPanel: {
     width: 300,
-    borderLeft: '1px solid #e2e8f0',
-    background: '#ffffff',
+    borderLeft: '1px solid var(--sandbox-border, #e2e8f0)',
+    background: 'var(--sandbox-panel-bg, #ffffff)',
     display: 'flex',
     flexDirection: 'column' as const,
     flexShrink: 0,
@@ -857,7 +1003,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   emptyProperties: {
     padding: 24,
-    color: '#94a3b8',
+    color: 'var(--sandbox-muted, #94a3b8)',
     fontSize: 13,
     textAlign: 'center' as const,
   },
@@ -880,33 +1026,45 @@ const styles: Record<string, React.CSSProperties> = {
   propertyLabel: {
     fontSize: 12,
     fontWeight: 600,
-    color: '#475569',
+    color: 'var(--sandbox-muted, #475569)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
   },
   propertyInput: {
     padding: '8px 10px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid var(--sandbox-border, #cbd5e1)',
     borderRadius: 6,
     fontSize: 13,
     outline: 'none',
     fontFamily: 'inherit',
+    background: 'var(--sandbox-input-bg, #fff)',
+    color: 'var(--sandbox-text, #0f172a)',
   },
   propertySelect: {
     padding: '8px 10px',
-    border: '1px solid #cbd5e1',
+    border: '1px solid var(--sandbox-border, #cbd5e1)',
     borderRadius: 6,
     fontSize: 13,
     outline: 'none',
-    background: '#fff',
+    background: 'var(--sandbox-input-bg, #fff)',
     fontFamily: 'inherit',
+    color: 'var(--sandbox-text, #0f172a)',
+  },
+  colorInput: {
+    width: '100%',
+    height: 36,
+    padding: 0,
+    border: '1px solid var(--sandbox-border, #cbd5e1)',
+    borderRadius: 6,
+    background: 'var(--sandbox-input-bg, #fff)',
+    cursor: 'pointer',
   },
   deleteButton: {
     marginTop: 16,
     padding: '10px',
-    background: '#fef2f2',
-    color: '#dc2626',
-    border: '1px solid #fecaca',
+    background: 'var(--sandbox-delete-bg, #fef2f2)',
+    color: 'var(--sandbox-delete-color, #dc2626)',
+    border: '1px solid var(--sandbox-delete-border, #fecaca)',
     borderRadius: 6,
     cursor: 'pointer',
     fontWeight: 600,
@@ -914,15 +1072,16 @@ const styles: Record<string, React.CSSProperties> = {
   },
   dragOverlay: {
     padding: '12px 16px',
-    background: '#fff',
-    border: '1px solid #e2e8f0',
+    background: 'var(--sandbox-panel-bg, #fff)',
+    border: '1px solid var(--sandbox-border, #e2e8f0)',
     borderRadius: 8,
-    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
     display: 'flex',
     alignItems: 'center',
     gap: 8,
     fontSize: 13,
     fontWeight: 600,
+    color: 'var(--sandbox-text, #0f172a)',
   },
   dragOverlayIcon: {
     fontSize: 16,
